@@ -1,5 +1,5 @@
 import re
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel, validator
 from typing_extensions import Literal
@@ -12,7 +12,7 @@ class Parameters(BaseModel):
     type: Optional[
         Literal["auto", "product", "person", "car"]
     ] = "auto"  # Not supported at the moment
-    format: Optional[Literal["auto", "jpg", "png", "zip"]] = "auto"
+    format: Optional[Literal["auto", "jpg", "png", "zip","json"]] = "auto"
     roi: str = "0% 0% 100% 100%"
     crop: bool = False
     crop_margin: Optional[str] = "0px"
@@ -70,3 +70,6 @@ class Parameters(BaseModel):
         if len(value) and value[0] != "#":
             value = "#" + value
         return value
+
+class VertexAIParameters(BaseModel):
+    instances: List[Parameters] = []

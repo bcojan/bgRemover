@@ -6,6 +6,7 @@ License: Apache License 2.0
 from PIL import Image
 from carvekit.trimap.cv_gen import CV2TrimapGenerator
 from carvekit.trimap.add_ops import prob_filter, prob_as_unknown_area, post_erosion
+from timer_cm import Timer
 
 
 class TrimapGenerator(CV2TrimapGenerator):
@@ -38,10 +39,13 @@ class TrimapGenerator(CV2TrimapGenerator):
         Returns:
             Generated trimap for image.
         """
-        filter_mask = prob_filter(mask=mask, prob_threshold=self.prob_threshold)
-        trimap = super(TrimapGenerator, self).__call__(original_image, filter_mask)
-        new_trimap = prob_as_unknown_area(
-            trimap=trimap, mask=mask, prob_threshold=self.prob_threshold
-        )
-        new_trimap = post_erosion(new_trimap, self.__erosion_iters)
-        return new_trimap
+        with Timer('TrimapGenerator') as timer:
+            with timer.child('filter_mask'):
+                filter_mask = prob_filter(mask=mask, prob_threshold=self.prob_threshold)
+            with timer.child('trimap'):
+                trimap = super(TrimapGenerator, self).__call__(original_image, filter_mask)
+                new_trimap = prob_as_unknown_area(
+                    trimap=trimap, mask=mask, prob_threshold=self.prob_threshold
+                )
+                new_trimap = post_erosion(new_trimap, self.__erosion_iters)
+                return new_trimap

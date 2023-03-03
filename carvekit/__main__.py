@@ -8,6 +8,7 @@ from carvekit.utils.pool_utils import batch_generator, thread_pool_processing
 from carvekit.web.schemas.config import MLConfig
 from carvekit.web.utils.init_utils import init_interface
 from carvekit.utils.fs_utils import save_file
+from timer_cm import Timer
 
 
 @click.command(
@@ -131,18 +132,21 @@ def removebg(
 
     interface = init_interface(interface_config)
 
-    for image_batch in tqdm.tqdm(
-        batch_generator(all_images, n=batch_size),
-        total=int(len(all_images) / batch_size),
-        desc="Removing background",
-        unit=" image batch",
-        colour="blue",
-    ):
-        images_without_background = interface(image_batch)  # Remove background
-        thread_pool_processing(
-            lambda x: save_file(out_path, image_batch[x], images_without_background[x]),
-            range((len(image_batch))),
-        )  # Drop images to fs
+    with Timer('Full process') as timer:
+        for image_batch in tqdm.tqdm(
+            batch_generator(all_images, n=batch_size),
+            total=int(len(all_images) / batch_size),
+            desc="Removing background",
+            unit=" image batch",
+            colour="blue",
+        ):
+            with timer.child('call interface'):
+                images_without_background = interface(image_batch)  # Remove background
+            with timer.child('thread_pool_processing'):
+                thread_pool_processing(
+                    lambda x: save_file(out_path, image_batch[x], images_without_background[x]),
+                    range((len(image_batch))),
+                )  # Drop images to fs
 
 
 if __name__ == "__main__":

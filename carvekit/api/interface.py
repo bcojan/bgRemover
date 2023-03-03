@@ -17,7 +17,7 @@ from carvekit.pipelines.postprocessing import MattingMethod
 from carvekit.utils.image_utils import load_image
 from carvekit.utils.mask_utils import apply_mask
 from carvekit.utils.pool_utils import thread_pool_processing
-
+from timer_cm import Timer
 
 class Interface:
     def __init__(
@@ -53,25 +53,31 @@ class Interface:
         Returns:
             List of images without background as PIL.Image.Image instances
         """
-        images = thread_pool_processing(load_image, images)
-        if self.preprocessing_pipeline is not None:
-            masks: List[Image.Image] = self.preprocessing_pipeline(
-                interface=self, images=images
-            )
-        else:
-            masks: List[Image.Image] = self.segmentation_pipeline(images=images)
+        with Timer('Full segmentation') as timer:
+            with timer.child('get images'):
+                images = thread_pool_processing(load_image, images)
+            
+            
+            with timer.child('preprocessing_pipeline'):
+                if self.preprocessing_pipeline is not None:
+                    masks: List[Image.Image] = self.preprocessing_pipeline(
+                        interface=self, images=images
+                    )
+                else:
+                    masks: List[Image.Image] = self.segmentation_pipeline(images=images)
 
-        if self.postprocessing_pipeline is not None:
-            images: List[Image.Image] = self.postprocessing_pipeline(
-                images=images, masks=masks
-            )
-        else:
-            images = list(
-                map(
-                    lambda x: apply_mask(
-                        image=images[x], mask=masks[x], device=self.device
-                    ),
-                    range(len(images)),
-                )
-            )
+            with timer.child('postprocessing_pipeline'):
+                if self.postprocessing_pipeline is not None:
+                    images: List[Image.Image] = self.postprocessing_pipeline(
+                        images=images, masks=masks
+                    )
+                else:
+                    images = list(
+                        map(
+                            lambda x: apply_mask(
+                                image=images[x], mask=masks[x], device=self.device
+                            ),
+                            range(len(images)),
+                        )
+                    )
         return images

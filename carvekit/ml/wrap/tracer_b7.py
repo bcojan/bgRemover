@@ -18,6 +18,7 @@ from carvekit.ml.files.models_loc import tracer_b7_pretrained, tracer_hair_pretr
 from carvekit.utils.models_utils import get_precision_autocast, cast_network
 from carvekit.utils.image_utils import load_image, convert_image
 from carvekit.utils.pool_utils import thread_pool_processing, batch_generator
+from timer_cm import Timer
 
 __all__ = ["TracerUniversalB7"]
 
@@ -70,12 +71,16 @@ class TracerUniversalB7(TracerDecoder):
             ]
         )
         self.to(device)
-        if load_pretrained:
-            # TODO remove edge detector from weights. It doesn't work well with this model!
-            self.load_state_dict(
-                torch.load(model_path, map_location=self.device), strict=False
-            )
-        self.eval()
+
+        with Timer('TracerB7 segmentation') as timer:
+            if load_pretrained:
+                # TODO remove edge detector from weights. It doesn't work well with this model!
+                with timer.child('load TracerB7 model'):
+                    self.load_state_dict(
+                        torch.load(model_path, map_location=self.device), strict=False
+                    )
+            with timer.child('load TracerB7 eval'):
+                self.eval()
 
     def data_preprocessing(self, data: PIL.Image.Image) -> torch.FloatTensor:
         """
@@ -128,29 +133,30 @@ class TracerUniversalB7(TracerDecoder):
             segmentation masks as for input images, as PIL.Image.Image instances
 
         """
-        collect_masks = []
-        autocast, dtype = get_precision_autocast(device=self.device, fp16=self.fp16)
-        with autocast:
-            cast_network(self, dtype)
-            for image_batch in batch_generator(images, self.batch_size):
-                images = thread_pool_processing(
-                    lambda x: convert_image(load_image(x)), image_batch
-                )
-                batches = torch.vstack(
-                    thread_pool_processing(self.data_preprocessing, images)
-                )
-                with torch.no_grad():
-                    batches = batches.to(self.device)
-                    masks = super(TracerDecoder, self).__call__(batches)
-                    masks_cpu = masks.cpu()
-                    del batches, masks
-                masks = thread_pool_processing(
-                    lambda x: self.data_postprocessing(masks_cpu[x], images[x]),
-                    range(len(images)),
-                )
-                collect_masks += masks
+        with Timer('TracerB7 segmentation call') as timer:
+            collect_masks = []
+            autocast, dtype = get_precision_autocast(device=self.device, fp16=self.fp16)
+            with autocast:
+                cast_network(self, dtype)
+                for image_batch in batch_generator(images, self.batch_size):
+                    images = thread_pool_processing(
+                        lambda x: convert_image(load_image(x)), image_batch
+                    )
+                    batches = torch.vstack(
+                        thread_pool_processing(self.data_preprocessing, images)
+                    )
+                    with torch.no_grad():
+                        batches = batches.to(self.device)
+                        masks = super(TracerDecoder, self).__call__(batches)
+                        masks_cpu = masks.cpu()
+                        del batches, masks
+                    masks = thread_pool_processing(
+                        lambda x: self.data_postprocessing(masks_cpu[x], images[x]),
+                        range(len(images)),
+                    )
+                    collect_masks += masks
 
-        return collect_masks
+            return collect_masks
 
 
 class TracerHair(TracerUniversalB7):

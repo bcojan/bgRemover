@@ -15,3 +15,4 @@ tqdm~=4.64.0
 setuptools~=62.3.2
 aiofiles~=0.8.0
 python-multipart~=0.0.5
+timer-cm==1.1

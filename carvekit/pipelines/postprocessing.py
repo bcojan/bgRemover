@@ -12,6 +12,7 @@ from carvekit.trimap.generator import TrimapGenerator
 from carvekit.utils.mask_utils import apply_mask
 from carvekit.utils.pool_utils import thread_pool_processing
 from carvekit.utils.image_utils import load_image, convert_image
+from timer_cm import Timer
 
 __all__ = ["MattingMethod"]
 
@@ -57,20 +58,33 @@ class MattingMethod:
         """
         if len(images) != len(masks):
             raise ValueError("Images and Masks lists should have same length!")
-        images = thread_pool_processing(lambda x: convert_image(load_image(x)), images)
-        masks = thread_pool_processing(
-            lambda x: convert_image(load_image(x), mode="L"), masks
-        )
-        trimaps = thread_pool_processing(
-            lambda x: self.trimap_generator(original_image=images[x], mask=masks[x]),
-            range(len(images)),
-        )
-        alpha = self.matting_module(images=images, trimaps=trimaps)
-        return list(
-            map(
-                lambda x: apply_mask(
-                    image=images[x], mask=alpha[x], device=self.device
-                ),
-                range(len(images)),
-            )
-        )
+
+        with Timer('Post processing pipeline') as timer:
+            with timer.child('convert_image'):
+                images = thread_pool_processing(lambda x: convert_image(load_image(x)), images)
+            with timer.child('generate mask'):
+                masks = thread_pool_processing(
+                    lambda x: convert_image(load_image(x), mode="L"), masks
+                )
+            with timer.child('generate trimap'):
+                trimaps = thread_pool_processing(
+                    lambda x: self.trimap_generator(original_image=images[x], mask=masks[x]),
+                    range(len(images)),
+                )
+                alpha = self.matting_module(images=images, trimaps=trimaps)
+
+
+        # mask = masks[0]
+        # mask.save("/Users/bcojan/Downloads/mask.jpg")
+
+        # trimap = trimaps[0]
+        # trimap.save("/Users/bcojan/Downloads/trimap.jpg")
+
+                return list(
+                    map(
+                        lambda x: apply_mask(
+                            image=images[x], mask=alpha[x], device=self.device
+                        ),
+                        range(len(images)),
+                    )
+                )

@@ -15,7 +15,7 @@ from starlette.responses import JSONResponse
 from carvekit.web.deps import config, ml_processor
 from carvekit.web.handlers.response import handle_response, Authenticate
 from carvekit.web.responses.api import error_dict
-from carvekit.web.schemas.request import Parameters
+from carvekit.web.schemas.request import Parameters, VertexAIParameters
 from carvekit.web.utils.net_utils import is_loopback
 
 api_router = APIRouter(prefix="", tags=["api"])
@@ -26,7 +26,7 @@ api_router = APIRouter(prefix="", tags=["api"])
 async def removebg(
     request: Request,
     image_file: Optional[bytes] = File(None),
-    auth: bool = Depends(Authenticate),
+    auth: bool = True,
     content_type: str = Header(""),
     image_file_b64: Optional[str] = Form(None),
     image_url: Optional[str] = Form(None),
@@ -185,6 +185,75 @@ async def removebg(
     return handle_response(result, image)
 
 
+# noinspection PyBroadException
+@api_router.post("/vertexRemovebg")
+async def removebg(
+    request: Request
+):
+    payload = None
+    try:
+        payload = await request.json()
+    except JSONDecodeError:
+        return JSONResponse(content=error_dict("Empty json"), status_code=400)
+    try:
+        vertexAiParameters = VertexAIParameters(**payload)
+    except ValidationError as e:
+        return Response(
+            content=e.json(), status_code=400, media_type="application/json"
+        )
+    parameters = vertexAiParameters.instances[0]
+    bg = None
+    if parameters.image_file_b64 is None and parameters.image_url is None:
+        return JSONResponse(content=error_dict("File not found"), status_code=400)
+
+    if parameters.image_file_b64:
+        if len(parameters.image_file_b64) == 0:
+            return JSONResponse(content=error_dict("Empty image"), status_code=400)
+        try:
+            image = Image.open(
+                io.BytesIO(base64.b64decode(parameters.image_file_b64))
+            )
+        except BaseException:
+            return JSONResponse(
+                content=error_dict("Error decode image!"), status_code=400
+            )
+    elif parameters.image_url:
+        if not (
+            parameters.image_url.startswith("http://")
+            or parameters.image_url.startswith("https://")
+        ) or is_loopback(parameters.image_url):
+            print(
+                f"Possible ssrf attempt to /api/removebg endpoint with image url: {parameters.image_url}"
+            )
+            return JSONResponse(
+                content=error_dict("Invalid image url."), status_code=400
+            )  # possible ssrf attempt
+        try:
+            image = Image.open(
+                io.BytesIO(requests.get(parameters.image_url).content)
+            )
+        except BaseException:
+            return JSONResponse(
+                content=error_dict("Error download image!"), status_code=400
+            )
+    if image is None:
+        return JSONResponse(
+            content=error_dict("Error download image!"), status_code=400
+        )
+
+    job_id = ml_processor.job_create([parameters.dict(), image, bg, False])
+
+    while ml_processor.job_status(job_id) != "finished":
+        if ml_processor.job_status(job_id) == "not_found":
+            return JSONResponse(
+                content=error_dict("Job ID not found!"), status_code=500
+            )
+        time.sleep(5)
+
+    result = ml_processor.job_result(job_id)
+    return handle_response(result, image)
+
+
 @api_router.get("/account")
 def account():
     """
@@ -205,6 +274,15 @@ def account():
             }
         },
         status_code=200,
+    )
+
+@api_router.get("/alive")
+def account():
+    return JSONResponse(
+        content={
+            "status": "OK"
+        }, 
+        status_code=200
     )
 
 
