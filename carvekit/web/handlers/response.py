@@ -4,7 +4,6 @@ from fastapi import Header
 from fastapi.responses import Response, JSONResponse
 from carvekit.web.deps import config
 
-
 def Authenticate(x_api_key: Union[str, None] = Header(None)) -> Union[bool, str]:
     if x_api_key in config.auth.allowed_tokens:
         return "allowed"
@@ -39,7 +38,7 @@ def handle_response(response, original_image) -> Response:
             )
         elif response["type"] == "png":
             response_object = Response(
-                content=response["data"][0].read(), media_type="image/png"
+                response["data"][0].read(), media_type="image/png"
             )
         elif response["type"] == "zip":
             response_object = Response(

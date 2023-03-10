@@ -17,6 +17,11 @@ from carvekit.web.handlers.response import handle_response, Authenticate
 from carvekit.web.responses.api import error_dict
 from carvekit.web.schemas.request import Parameters, VertexAIParameters
 from carvekit.web.utils.net_utils import is_loopback
+from carvekit.web.utils.init_utils import init_interface
+from carvekit.web.schemas.config import WebAPIConfig
+from carvekit.web.utils.init_utils import init_config
+from carvekit.web.other.removebg import process_remove_bg
+
 
 api_router = APIRouter(prefix="", tags=["api"])
 
@@ -240,17 +245,22 @@ async def removebg(
         return JSONResponse(
             content=error_dict("Error download image!"), status_code=400
         )
+    config: WebAPIConfig = init_config()
+    interface = init_interface(config)
+    result = process_remove_bg(
+                    interface, parameters.dict(), image, bg, False
+                )
 
-    job_id = ml_processor.job_create([parameters.dict(), image, bg, False])
+    # job_id = ml_processor.job_create([parameters.dict(), image, bg, False])
 
-    while ml_processor.job_status(job_id) != "finished":
-        if ml_processor.job_status(job_id) == "not_found":
-            return JSONResponse(
-                content=error_dict("Job ID not found!"), status_code=500
-            )
-        time.sleep(5)
+    # while ml_processor.job_status(job_id) != "finished":
+    #     if ml_processor.job_status(job_id) == "not_found":
+    #         return JSONResponse(
+    #             content=error_dict("Job ID not found!"), status_code=500
+    #         )
+    #     time.sleep(5)
 
-    result = ml_processor.job_result(job_id)
+    # result = ml_processor.job_result(job_id)
     return handle_response(result, image)
 
 
@@ -285,6 +295,16 @@ def account():
         status_code=200
     )
 
+@api_router.post("/vertextest")
+def account():
+    return JSONResponse(
+        content={
+            "predictions": [
+                {"hello": "world"}
+            ]
+        }, 
+        status_code=200
+    )
 
 @api_router.get("/admin/config")
 def status(auth: str = Depends(Authenticate)):
