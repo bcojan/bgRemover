@@ -176,18 +176,25 @@ async def removebg(
             return JSONResponse(
                 content=error_dict("Error download image!"), status_code=400
             )
-
-    job_id = ml_processor.job_create([parameters.dict(), image, bg, False])
-
-    while ml_processor.job_status(job_id) != "finished":
-        if ml_processor.job_status(job_id) == "not_found":
-            return JSONResponse(
-                content=error_dict("Job ID not found!"), status_code=500
-            )
-        time.sleep(5)
-
-    result = ml_processor.job_result(job_id)
+        
+    config: WebAPIConfig = init_config()
+    interface = init_interface(config)
+    result = process_remove_bg(
+                    interface, parameters.dict(), image, bg, False
+                )
     return handle_response(result, image)
+
+    # job_id = ml_processor.job_create([parameters.dict(), image, bg, False])
+
+    # while ml_processor.job_status(job_id) != "finished":
+    #     if ml_processor.job_status(job_id) == "not_found":
+    #         return JSONResponse(
+    #             content=error_dict("Job ID not found!"), status_code=500
+    #         )
+    #     time.sleep(5)
+
+    # result = ml_processor.job_result(job_id)
+    # return handle_response(result, image)
 
 
 # noinspection PyBroadException

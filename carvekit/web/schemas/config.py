@@ -22,11 +22,11 @@ class MLConfig(BaseModel):
 
     segmentation_network: Literal[
         "u2net", "deeplabv3", "basnet", "tracer_b7"
-    ] = "tracer_b7"
+    ] = "u2net"
     """Segmentation Network"""
     preprocessing_method: Literal["none", "stub"] = "none"
     """Pre-processing Method"""
-    postprocessing_method: Literal["fba", "none"] = "fba"
+    postprocessing_method: Literal["fba", "none"] = "none"
     """Post-Processing Network"""
     device: str = "cpu"
     """Processing device"""
