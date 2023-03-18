@@ -1,0 +1,20 @@
+{
+    "input": {
+        "image_file": "",
+        "image_file_b64": "",
+        "image_url": "https://www.remove.bg/example-hd.jpg",
+        "size": "auto",
+        "type": "auto",
+        "format": "json",
+        "roi": "0% 0% 100% 100%",
+        "crop": false,
+        "crop_margin": "0px",
+        "scale": "original",
+        "position": "original",
+        "channels": "alpha",
+        "add_shadow": false,
+        "semitransparency": true,
+        "bg_color": "",
+        "bg_image_url": ""
+    }
+}
