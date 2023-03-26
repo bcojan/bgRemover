@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: bgRemover
+  name: bgremover
 spec:
   selector:
     matchLabels:
-      app: bgRemover
+      app: bgremover
   template:
     metadata:
       labels:
-        app: bgRemover
+        app: bgremover
     spec:
       nodeSelector:
         cloud.google.com/gke-accelerator: nvidia-tesla-t4
       containers:
-      - name: bgRemover
+      - name: bgremover
         image: "gcr.io/magicbackground/ckit@sha256:3450912129b5d7add41392970941011e700c20ea04956415b4404f0247ac48ba"
         resources:
           limits:
@@ -28,7 +28,7 @@ metadata:
   name: bgRemoverService
 spec:
   selector:
-    app: bgRemover
+    app: bgremover
   ports:
   - port: 80
     targetPort: 5000
