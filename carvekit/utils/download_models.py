@@ -134,6 +134,7 @@ class HuggingFaceCompatibleDownloader(CachedDownloader, ABC):
         self.base_url = base_url
         self._name = name
         self._fallback_downloader = fb_downloader
+        print(self.cache_dir)
 
     @property
     def fallback_downloader(self) -> Optional["CachedDownloader"]:
@@ -144,6 +145,7 @@ class HuggingFaceCompatibleDownloader(CachedDownloader, ABC):
         return self._name
 
     def check_for_existence(self, file_name: str) -> Optional[Path]:
+        print(self.cache_dir)
         if file_name not in MODELS_URLS.keys():
             raise FileNotFoundError("Unknown model!")
         path = (
