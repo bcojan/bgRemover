@@ -71,6 +71,7 @@ class MattingMethod:
                     lambda x: self.trimap_generator(original_image=images[x], mask=masks[x]),
                     range(len(images)),
                 )
+            with timer.child('matting'):
                 alpha = self.matting_module(images=images, trimaps=trimaps)
 
 
