@@ -21,7 +21,7 @@ from carvekit.web.utils.init_utils import init_interface
 from carvekit.web.schemas.config import WebAPIConfig
 from carvekit.web.utils.init_utils import init_config
 from carvekit.web.other.removebg import process_remove_bg
-
+from carvekit.utils.download_models import downloader
 
 api_router = APIRouter(prefix="", tags=["api"])
 
@@ -304,11 +304,14 @@ def account():
 
 @api_router.post("/vertextest")
 def account():
+    basnet = downloader("basnet.pth")
+    tracer_b7 =  downloader("tracer_b7.pth")
+    fba_matting = downloader("fba_matting.pth")
     return JSONResponse(
-        content={
-            "predictions": [
-                {"hello": "world"}
-            ]
+        content= {"hello": "world",
+                "basnet": basnet,
+                "tracer_b7": tracer_b7,
+                "fba_matting": fba_matting
         }, 
         status_code=200
     )
