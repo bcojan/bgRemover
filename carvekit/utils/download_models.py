@@ -15,6 +15,7 @@ from carvekit.ml.files import checkpoints_dir
 
 import requests
 import tqdm
+from timer_cm import Timer
 
 requests = requests.Session()
 requests.headers.update({"User-Agent": f"Carvekit/{carvekit.version}"})
@@ -146,24 +147,27 @@ class HuggingFaceCompatibleDownloader(CachedDownloader, ABC):
 
     def check_for_existence(self, file_name: str) -> Optional[Path]:
         print(self.cache_dir)
-        if file_name not in MODELS_URLS.keys():
-            raise FileNotFoundError("Unknown model!")
-        path = (
-            self.cache_dir
-            / MODELS_URLS[file_name]["repository"].split("/")[1]
-            / file_name
-        )
-
-        if not path.exists():
-            return None
-
-        if MODELS_CHECKSUMS[path.name] != sha512_checksum_calc(path):
-            warnings.warn(
-                f"Invalid checksum for model {path.name}. Downloading correct model!"
+        with Timer('check_for_existence model') as timer:
+            if file_name not in MODELS_URLS.keys():
+                raise FileNotFoundError("Unknown model!")
+            path = (
+                self.cache_dir
+                / MODELS_URLS[file_name]["repository"].split("/")[1]
+                / file_name
             )
-            os.remove(path)
-            return None
-        return path
+
+            if not path.exists():
+                return None
+            return path
+
+            # with timer.child("checksum"):
+            #     if MODELS_CHECKSUMS[path.name] != sha512_checksum_calc(path):
+            #         warnings.warn(
+            #             f"Invalid checksum for model {path.name}. Downloading correct model!"
+            #         )
+            #         os.remove(path)
+            #         return None
+            #     return path
 
     def download_model_base(self, file_name: str) -> Path:
         cached_path = self.check_for_existence(file_name)
