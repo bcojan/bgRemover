@@ -8,6 +8,7 @@ RUN mkdir -p ./carvekit/ml/files
 COPY ./carvekit/__init__.py ./carvekit/__init__.py
 RUN touch ./carvekit/ml/__init__.py
 RUN touch ./carvekit/utils/__init__.py
+RUN pip3 install timer-cm
 COPY ./carvekit/utils/download_models.py ./carvekit/utils/download_models.py
 COPY ./carvekit/ml/files/__init__.py ./carvekit/ml/files/__init__.py
 COPY ./carvekit/ml/files/models_loc.py ./carvekit/ml/files/models_loc.py
