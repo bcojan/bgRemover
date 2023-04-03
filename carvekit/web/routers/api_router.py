@@ -309,9 +309,9 @@ def account():
     fba_matting = downloader("fba_matting.pth")
     return JSONResponse(
         content= {"hello": "world",
-                "basnet": basnet,
-                "tracer_b7": tracer_b7,
-                "fba_matting": fba_matting
+                "basnet": basnet.name,
+                "tracer_b7": tracer_b7.name,
+                "fba_matting": fba_matting.name
         }, 
         status_code=200
     )
