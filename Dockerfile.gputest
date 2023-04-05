@@ -1,0 +1,34 @@
+FROM pytorch/pytorch:1.11.0-cuda11.3-cudnn8-runtime
+WORKDIR /app
+
+# Install requirements
+COPY requirements.txt ./
+RUN pip3 install --no-cache-dir -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cu113
+
+# Update code
+COPY ./ ./
+
+ENV CARVEKIT_PORT '5000'
+ENV CARVEKIT_HOST '0.0.0.0'
+ENV CARVEKIT_SEGMENTATION_NETWORK 'tracer_b7'
+ENV CARVEKIT_PREPROCESSING_METHOD 'none'
+ENV CARVEKIT_POSTPROCESSING_METHOD 'fba'
+ENV CARVEKIT_DEVICE 'cuda'
+ENV CARVEKIT_BATCH_SIZE_SEG '5'
+ENV CARVEKIT_BATCH_SIZE_MATTING '1'
+ENV CARVEKIT_SEG_MASK_SIZE '640'
+ENV CARVEKIT_MATTING_MASK_SIZE '2048'
+ENV CARVEKIT_AUTH_ENABLE '1'
+ENV CARVEKIT_FP16 '0'
+ENV CARVEKIT_TRIMAP_PROB_THRESHOLD=231
+ENV CARVEKIT_TRIMAP_DILATION=30
+ENV CARVEKIT_TRIMAP_EROSION=5
+
+# Tokens will be generated automatically every time the container is restarted if ENV is not set.
+
+# ENV CARVEKIT_ADMIN_TOKEN 'admin_token' # Do not use this env when creating an image as it is not safe.
+# ENV CARVEKIT_ALLOWED_TOKENS 'test_token1,test_token2' # Do not use this env when creating an image as it is not safe.
+
+EXPOSE 5000
+
+CMD ["/bin/sh", "-c", "uvicorn carvekit.web.app:app --host $CARVEKIT_HOST --port $CARVEKIT_PORT"]

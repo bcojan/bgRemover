@@ -22,6 +22,7 @@ from carvekit.web.schemas.config import WebAPIConfig
 from carvekit.web.utils.init_utils import init_config
 from carvekit.web.other.removebg import process_remove_bg
 from carvekit.utils.download_models import downloader
+import torch
 
 api_router = APIRouter(prefix="", tags=["api"])
 
@@ -312,6 +313,19 @@ def account():
                 "basnet": basnet.name,
                 "tracer_b7": tracer_b7.name,
                 "fba_matting": fba_matting.name
+        }, 
+        status_code=200
+    )
+
+@api_router.post("/gputest")
+def account():
+    
+    device="cuda" if torch.cuda.is_available() else "cpu",
+    current_device = torch.cuda.current_device() if torch.cuda.is_available() else "cpu", 
+    return JSONResponse(
+        content= {"hello": "world",
+                "device": device,
+                "current_device": current_device
         }, 
         status_code=200
     )
