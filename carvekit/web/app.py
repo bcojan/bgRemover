@@ -3,6 +3,7 @@ from pathlib import Path
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from starlette.staticfiles import StaticFiles
 
 from carvekit import version
@@ -10,6 +11,7 @@ from carvekit.web.deps import config
 from carvekit.web.routers.api_router import api_router
 
 app = FastAPI(title="CarveKit Web API", version=version)
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 app.add_middleware(
     CORSMiddleware,

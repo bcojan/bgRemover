@@ -30,11 +30,7 @@ def handle_response(response, original_image) -> Response:
             )
         elif response["type"] == "json":
             response_object = JSONResponse(
-                content={
-                    "predictions": [
-                        {"maskImage": response["data"][0].decode('utf-8')}
-                    ]
-                }
+                content={"maskImage": response["data"][0].decode('utf-8')}
             )
         elif response["type"] == "png":
             response_object = Response(
