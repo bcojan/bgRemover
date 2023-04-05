@@ -19,13 +19,13 @@ from carvekit.web.schemas.request import Parameters, VertexAIParameters
 from carvekit.web.utils.net_utils import is_loopback
 from carvekit.web.utils.init_utils import init_interface
 from carvekit.web.schemas.config import WebAPIConfig
-from carvekit.web.utils.init_utils import init_config
 from carvekit.web.other.removebg import process_remove_bg
 from carvekit.utils.download_models import downloader
+from carvekit.web.deps import config
 import torch
 
 api_router = APIRouter(prefix="", tags=["api"])
-
+interface = init_interface(config)
 
 # noinspection PyBroadException
 @api_router.post("/removebg")
@@ -178,8 +178,6 @@ async def removebg(
                 content=error_dict("Error download image!"), status_code=400
             )
         
-    config: WebAPIConfig = init_config()
-    interface = init_interface(config)
     result = process_remove_bg(
                     interface, parameters.dict(), image, bg, False
                 )
@@ -253,8 +251,7 @@ async def removebg(
         return JSONResponse(
             content=error_dict("Error download image!"), status_code=400
         )
-    config: WebAPIConfig = init_config()
-    interface = init_interface(config)
+    
     result = process_remove_bg(
                     interface, parameters.dict(), image, bg, False
                 )
