@@ -3,6 +3,7 @@ from typing import Union
 from fastapi import Header
 from fastapi.responses import Response, JSONResponse
 from carvekit.web.deps import config
+import json 
 
 def Authenticate(x_api_key: Union[str, None] = Header(None)) -> Union[bool, str]:
     if x_api_key in config.auth.allowed_tokens:
@@ -30,7 +31,10 @@ def handle_response(response, original_image) -> Response:
             )
         elif response["type"] == "json":
             response_object = JSONResponse(
-                content={"maskImage": response["data"][0].decode('utf-8')}
+                content={
+                "maskImage": response["data"][0].decode('utf-8'),
+                "roi": json.loads(response["roi"])
+                }
             )
         elif response["type"] == "png":
             response_object = Response(

@@ -9,6 +9,7 @@ from carvekit.utils.image_utils import transparency_paste, add_margin
 from carvekit.utils.mask_utils import extract_alpha_channel
 from carvekit.web.responses.api import error_dict
 from carvekit.api.interface import Interface
+from carvekit.utils.roi import roi_from_image
 import base64
 
 def process_remove_bg(
@@ -218,7 +219,8 @@ def process_remove_bg(
             img_io = io.BytesIO()
             new_image.save(img_io, "JPEG", quality=100)
             img_io.seek(0)
-            return {"type": "json", "data": [base64.b64encode(img_io.read()),new_image.size]}
+            rois = roi_from_image(new_image)
+            return {"type": "json", "data": [base64.b64encode(img_io.read()),new_image.size], "roi": rois.toJSON()}
         elif value == "zip":
             mask = extract_alpha_channel(new_image)
             mask_buff = io.BytesIO()
