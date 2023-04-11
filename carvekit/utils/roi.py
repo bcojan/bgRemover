@@ -3,11 +3,11 @@ import json
 import numpy
 
 class Rectangle():
-    def __init__(self, x, y, width, height) -> None:
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
+    def __init__(self, X, Y, Width, Height) -> None:
+        self.X = X
+        self.Y = Y
+        self.Width = Width
+        self.Height = Height
     
     def toJSON(self):
         return json.dumps(self.__dict__)
@@ -29,10 +29,10 @@ def roi_from_image(image):
     rois = ROIs(Rectangle(minX, minY, 0, 0))
     for c in cnts:
         x,y,w,h = cv2.boundingRect(c)
-        rois.main.x = min(x, rois.main.x)
-        rois.main.y = min(y, rois.main.y)
-        rois.main.width = max(w, rois.main.width)
-        rois.main.height = max(h, rois.main.height)
+        rois.main.X = min(x, rois.main.X)
+        rois.main.Y = min(y, rois.main.Y)
+        rois.main.Width = max(w, rois.main.Width)
+        rois.main.Height = max(h, rois.main.Height)
         if w > 200 and h > 200:
             rois.rois.append(Rectangle(x,y,w,h)) 
 
