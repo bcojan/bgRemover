@@ -1,12 +1,14 @@
-# from pathlib import Path
+from pathlib import Path
 # Import the os module
 import os
 
 # Get the current working directory
 cwd = os.getcwd()
 
-carvekit_dir = cwd.joinpath("cache/carvekit")
+carvekit_dir = os.path.join(cwd, "cache")
 
-carvekit_dir.mkdir(parents=True, exist_ok=True)
+# carvekit_dir.mkdir(parents=True, exist_ok=True)
+print(carvekit_dir)
+os.mkdir(carvekit_dir)
 
-checkpoints_dir = carvekit_dir.joinpath("checkpoints")
+checkpoints_dir =  Path(os.path.join(carvekit_dir, "checkpoints"))
