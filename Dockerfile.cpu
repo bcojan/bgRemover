@@ -13,7 +13,7 @@ RUN pip3 install timer-cm
 COPY ./carvekit/utils/download_models.py ./carvekit/utils/download_models.py
 COPY ./carvekit/ml/files/__init__.py ./carvekit/ml/files/__init__.py
 COPY ./carvekit/ml/files/models_loc.py ./carvekit/ml/files/models_loc.py
-RUN python3 -c "from carvekit.ml.files.models_loc import_some; download_some();"
+RUN python3 -c "from carvekit.ml.files.models_loc import download_some; download_some();"
 RUN rm -rf ./carvekit
 
 FROM python:3.10.4
