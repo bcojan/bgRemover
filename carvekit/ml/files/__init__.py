@@ -1,6 +1,11 @@
-from pathlib import Path
+# from pathlib import Path
+# Import the os module
+import os
 
-carvekit_dir = Path.home().joinpath(".cache/carvekit")
+# Get the current working directory
+cwd = os.getcwd()
+
+carvekit_dir = cwd.joinpath("cache/carvekit")
 
 carvekit_dir.mkdir(parents=True, exist_ok=True)
 
