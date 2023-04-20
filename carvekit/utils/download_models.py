@@ -147,8 +147,8 @@ class HuggingFaceCompatibleDownloader(CachedDownloader, ABC):
 
     def check_for_existence(self, file_name: str) -> Optional[Path]:
         print(self.cache_dir)
-        arr = os.listdir(self.cache_dir)
-        print(arr)
+        # arr = os.listdir(self.cache_dir.as_uri())
+        # print(arr)
         with Timer('check_for_existence model') as timer:
             if file_name not in MODELS_URLS.keys():
                 raise FileNotFoundError("Unknown model!")
@@ -157,8 +157,9 @@ class HuggingFaceCompatibleDownloader(CachedDownloader, ABC):
                 / MODELS_URLS[file_name]["repository"].split("/")[1]
                 / file_name
             )
-
+            print(path.absolute())
             if not path.exists():
+                print("PATH DOES NOT EXIST")
                 return None
             return path
 
