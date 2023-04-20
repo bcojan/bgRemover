@@ -20,7 +20,7 @@ FROM python:3.10.4
 WORKDIR /app
 
 RUN apt-get update && apt-get -y install libgl1  # Install cv2 dep.
-COPY --from=builder /root/.cache/carvekit /root/.cache/carvekit
+COPY --from=builder /app/.cache/carvekit /app/.cache/carvekit
 
 # Install requirements
 COPY requirements.txt ./
