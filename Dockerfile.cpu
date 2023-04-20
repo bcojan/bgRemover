@@ -50,6 +50,7 @@ ENV CARVEKIT_TRIMAP_PROB_THRESHOLD=231
 ENV CARVEKIT_TRIMAP_DILATION=30
 ENV CARVEKIT_TRIMAP_EROSION=5
 
+RUN echo $(ls /root/.cache/carvekit/checkpoints)
 # Tokens will be generated automatically every time the container is restarted if ENV is not set.
 
 # ENV CARVEKIT_ADMIN_TOKEN 'admin_token' # Do not use this env when creating an image as it is not safe.
