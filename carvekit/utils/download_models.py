@@ -147,6 +147,8 @@ class HuggingFaceCompatibleDownloader(CachedDownloader, ABC):
 
     def check_for_existence(self, file_name: str) -> Optional[Path]:
         print(self.cache_dir)
+        arr = os.listdir("self.cache_dir")
+        print(arr)
         with Timer('check_for_existence model') as timer:
             if file_name not in MODELS_URLS.keys():
                 raise FileNotFoundError("Unknown model!")
