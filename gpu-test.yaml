@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bg-remover
+spec:
+  selector:
+    matchLabels:
+      app: bgremover
+  template:
+    metadata:
+      labels:
+        app: bgremover
+    spec:
+      nodeSelector:
+        cloud.google.com/gke-accelerator: nvidia-tesla-t4
+      containers:
+      - name: bgremover
+        image: gcr.io/magicbackground/github.com/bcojan/bgremover:ecfbc864484becbcf38b6186be789f724fe21849
+        resources:
+          requests:
+              cpu: "500m"
+              memory: "4Gi"
+          limits:
+              nvidia.com/gpu: "1"
+        env:
+        - name: CARVEKIT_SEGMENTATION_NETWORK
+          value: "tracer_b7"
+        - name: CARVEKIT_POSTPROCESSING_METHOD
+          value: "fba"
+        - name: CARVEKIT_DEVICE
+          value: "cuda"
+        - name: CARVEKIT_BATCH_SIZE_SEG
+          value: "1"
+        - name: CARVEKIT_BATCH_SIZE_MATTING
+          value: "1"
+        - name: CARVEKIT_SEG_MASK_SIZE
+          value: "640"
+        - name: CARVEKIT_MATTING_MASK_SIZE
+          value: "1024"
+        - name: CARVEKIT_FP16
+          value: "1"
+        - name: CARVEKIT_TRIMAP_PROB_THRESHOLD
+          value: "231"
+        - name: CARVEKIT_TRIMAP_DILATION
+          value: "30"
+        - name: CARVEKIT_TRIMAP_EROSION
+          value: "5"
+        ports:
+        - containerPort: 5000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bg-remover-service
+spec:
+  type: LoadBalancer
+  externalTrafficPolicy: Cluster
+  selector:
+    app: bgremover
+  ports:
+  - name: tcp-port
+    protocol: TCP
+    port: 80
+    targetPort: 5000
